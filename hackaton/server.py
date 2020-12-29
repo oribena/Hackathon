@@ -9,6 +9,9 @@ clients = []
 points = 0
 
 
+ori = 5
+
+
 def play_the_game_thread(client, address):
     global points
     lock = threading.RLock()
