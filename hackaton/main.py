@@ -68,3 +68,27 @@ if __name__ == '__main__':
     fun_facts()
 
 # See PyCharm help at https://www.jetbrains.com/help/pycharm/
+
+
+groups_dict = {1: ("Instinct", "Rocket"), 2: ("Beitar", "Katamon")}
+group1_chars = 104
+group2_chars = 28
+
+def print6():
+    print("Welcome to Keyboard Spamming Battle Royale.")
+    print("Group 1:\n==")
+    print(groups_dict[1][0] + "\n" + groups_dict[1][1])
+    print("Group 2:\n==")
+    print(groups_dict[2][0] + "\n" + groups_dict[2][1])
+    print("Start pressing keys on your keyboard as fast as you can!!")
+
+def print9():
+    print("Game over!")
+    print("Group 1 typed in " + group1_chars + " characters. Group 2 typed in " + group2_chars + " characters.")
+    winner = 1
+    if group2_chars > group1_chars:
+        winner = 2
+    print("Group " + winner + " wins!")
+    print("Congratulations to the winners:\n==")
+    print(groups_dict[winner][0])
+    print(groups_dict[winner][1])
