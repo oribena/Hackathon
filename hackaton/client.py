@@ -43,11 +43,13 @@ while time.time() < t_end:
                         char = msvcrt.getch()
                         pressedKey = char.decode('ASCII')
                         ClientSock.send(pressedKey.encode())
-                    print("Server disconnected, listening for offer requests...")
+                    results_message = ClientSock.recv(bufferSize).decode()
+                    if game_begins_message != "":
+                        print(results_message)
             except:
                 break
     except:
         break
+print("Server disconnected, listening for offer requests...")
 while True:
     msg1 = UDPClientSocket.recvfrom(bufferSize)
-

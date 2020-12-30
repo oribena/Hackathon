@@ -19,6 +19,7 @@ team_1 = []
 team_2 = []
 index_counter = 0
 t_end = time.time() + 10
+thread_count = 0
 
 
 def play_the_game_thread_group_1(client, address):
@@ -93,21 +94,37 @@ def on_new_client(clientSocket, addr):
         if group_num == 2:
             _thread.start_new_thread(play_the_game_thread_group_2, (clientSocket, addr))
         time.sleep(10)
+        if counter2 > counter1:
+            winning_group = "Group 2"
+            team_winners = team_1[0] + team_1[1]
+        else:
+            winning_group = "Group 1"
+            team_winners = team_2[0] + team_2[1]
+        finish_message = "Game over!\nGroup 1 typed in " + str(counter1) + " characters. Group 2 typed in " \
+                         + str(counter2) + " characters.\n" + winning_group + " wins!\n\n" \
+                         + "Congratulations to the winners:\n==\n" + "" + team_winners
+        clientSocket.send(finish_message.encode())
         return
     except:
         print("error occurred")
 
 
 def group_name_client_thread():
+    global counter1
+    global counter2
+    global thread_count
+    lock_thread_count = threading.RLock()
     try:
         global t_end
         TCPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
         TCPServerSocket.bind(("", 10))
         TCPServerSocket.listen(1)
-        while time.time() < t_end:
+        while time.time() < t_end and thread_count < 4:
             clientSocket, addr = TCPServerSocket.accept()
             group_thread = threading.Thread(target=on_new_client, args=(clientSocket, addr))
             group_thread.start()
+            with lock_thread_count:
+                thread_count += 1
         return
     except:
         print("Wrong type of message received")
@@ -133,19 +150,10 @@ while time.time() < t_end:
         time.sleep(1)
     except:
         time.sleep(1)
-# calculate
+while time.time() < t_end:
+    time.sleep(1)
 time.sleep(10)
-print("try to calulate results")
-if counter2 > counter1:
-    winning_group = "Group 1"
-    team_winners = team_1[0] + team_1[1]
-else:
-    winning_group = "Group 2"
-    team_winners = team_2[0] + team_2[1]
-finish_message = "Game over!\nGroup 1 typed in " + str(counter1) + " characters. Group 2 typed in " \
-                 + str(counter2) + " characters.\n" + winning_group + " wins!\n\n" \
-                 + "Congratulations to the winners:\n==\n" + "" + team_winners
-print(finish_message)
+print("Game over, sending out offer requests...")
 while True:
     MSG = struct.pack('<3Q', 0xfeedbeef, 0x2, 0xA)
     UDPServerSocket.sendto(MSG, ('<broadcast>', 13117))
