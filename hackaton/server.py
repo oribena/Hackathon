@@ -5,169 +5,190 @@ import struct
 import threading
 import random
 
-FORMAT = "32s 1s 40s 1s 256s 256s"
 bufferSize = 1024
-clients = []
-points = 0
-teams_list = []
-array = [1, 1, 2, 2]
-random.shuffle(array)
-counter1 = 0
-counter2 = 0
-clients = []
-team_1 = []
-team_2 = []
-index_counter = 0
-t_end = time.time() + 10
-thread_count = 0
+FORMAT = "32s 1s 40s 1s 256s 256s"
+teams_array = []
+clients_array = []
+random_numbers_array = [1, 1, 2, 2]
+random.shuffle(random_numbers_array)
+members_group1 = []
+members_group2 = []
+points_sum = 0
+points_group1 = 0
+points_group2 = 0
+all_members = 0
+end_time = 10 + time.time()
+count = 0
 
-def fun_facts():
-    """
-    :return: prints randomly a fun fact :)
-    """
-    list_of_facts = ["The First Computer Weighed More Than 27 Tons", "The First Computer Mouse was Made of Wood",
-                     "The First Known Computer Programmer was a Woman, her name was Ada Lovelace",
-                     "People Blink Less When They Use Computers", "Hackers Write About 6,000 New Viruses Each Month",
-                     "More Than 80% of Daily Emails in the U.S. are Spam",
-                     "The Parts for the Modern Computer Were First Invented in 1833",
-                     "The First Gigabyte Drive Cost $40,000", "MIT Has Computers That can Detect Fake Smiles"]
-    fact = random.choice(list_of_facts)
-    return("Fun Fact:\n" + fact)
-    
-    
-def play_the_game_thread_group_1(client, address):
-    global counter1
-    lock = threading.RLock()
-    t_end3 = time.time() + 10
-    while time.time() < t_end3:
+
+# the play of group 1
+def group1_playing(client, address):
+    global points_group1
+    locking = threading.RLock()
+    time_after_10_sec = time.time() + 10
+    while time.time() < time_after_10_sec:  # 10 seconds after the server was started
         try:
             key = client.recv(bufferSize)
-            keyboard_press = key.decode()
-            if keyboard_press != "":
-                with lock:
-                    counter1 = counter1 + 1
+            keyboard_pressing = key.decode()
+            if keyboard_pressing:
+                # count the points
+                with locking:
+                    points_group1 += 1
         except:
             continue
     return
 
 
-def play_the_game_thread_group_2(client, address):
-    global counter2
-    lock = threading.RLock()
-    t_end3 = time.time() + 10
-    while time.time() < t_end3:
+# the play of group 2
+def group2_playing(client, address):
+    global points_group2
+    locking = threading.RLock()
+    time_after_10_sec = time.time() + 10
+    while time.time() < time_after_10_sec:  # 10 seconds after the server was started
         try:
             key = client.recv(bufferSize)
-            keyboard_press = key.decode()
-            if keyboard_press != "":
-                with lock:
-                    counter2 = counter2 + 1
+            keyboard_pressing = key.decode()
+            if keyboard_pressing:
+                # count the points
+                with locking:
+                    points_group2 += 1
         except:
             continue
     return
 
 
-def on_new_client(clientSocket, addr):
-    global t_end
-    global clients
-    global team_1
-    global team_2
-    global index_counter
-    global counter1
-    global counter2
-    lock = threading.RLock()
-    lock1 = threading.RLock()
-    lock2 = threading.RLock()
+# The server records the names sent by the clients
+# and assigns each of the clients randomly to group 1 or group 2
+def new_client(client_socket, addr):
+    global clients_array
+    global members_group1
+    global members_group2
+    global points_group1
+    global points_group2
+    global all_members
+    global end_time
+    locking1 = threading.RLock()
+    locking2 = threading.RLock()
+    locking3 = threading.RLock()
+
     try:
-        group_name = clientSocket.recv(1024).decode()
-        if group_name != "":
-            with lock:
-                clients.append(group_name)
-            while len(clients) < 4:
+        name = client_socket.recv(1024).decode()
+        if name:
+            # add the name to the clients array
+            with locking1:
+                clients_array.append(name)
+            while len(clients_array) < 4:  # while there are less than 4 clients
                 time.sleep(1)
-            index_counter = len(team_1) + len(team_2)
-            if index_counter < 4:
-                group_num = array[index_counter]
+            all_members = len(members_group1) + len(members_group2)
+            if all_members < 4:
+                # assign random group
+                group_num = random_numbers_array[all_members]
                 if group_num == 1:
-                    with lock1:
-                        team_1.append(group_name)
+                    with locking2:
+                        members_group1.append(name)
                 if group_num == 2:
-                    with lock2:
-                        team_2.append(group_name)
-            while len(team_1) + len(team_2) < 4:
+                    with locking3:
+                        members_group2.append(name)
+            while len(members_group1) + len(members_group2) < 4:  # while there are less than 4 members
                 time.sleep(1)
-        while time.time() < t_end:
+        while time.time() < end_time:  # wait 10 sec
             time.sleep(1)
-        welcome_game = "Welcome to Keyboard Spamming Battle Royale.\nGroup 1:\n==\n" + team_1[0] + team_1[1] \
-                       + "Group 2:\n==\n" + team_2[0] + team_2[1] + "\nStart pressing keys on your keyboard as fast as " \
-                                                                    "you can!!\n "
-        clientSocket.send(welcome_game.encode())
+            # the game begins - the server sends a welcome message to all of the clients with the names of the teams
+        welcome_game = "Welcome to Keyboard Spamming Battle Royale.\n" \
+                       "Group 1:\n==\n" + members_group1[0] + members_group1[1] \
+                       + "Group 2:\n==\n" + members_group2[0] + members_group2[1] +\
+                       "\nStart pressing keys on your keyboard as fast as you can!!\n"
+        client_socket.send(welcome_game.encode())
         if group_num == 1:
-            _thread.start_new_thread(play_the_game_thread_group_1, (clientSocket, addr))
+            _thread.start_new_thread(group1_playing, (client_socket, addr))
         if group_num == 2:
-            _thread.start_new_thread(play_the_game_thread_group_2, (clientSocket, addr))
+            _thread.start_new_thread(group2_playing, (client_socket, addr))
         time.sleep(10)
-        if counter2 > counter1:
+        # check who is the winner
+        if points_group1 < points_group2:
             winning_group = "Group 2"
-            team_winners = team_1[0] + team_1[1]
+            winners = members_group1[0] + members_group1[1]  # update the winners members
         else:
             winning_group = "Group 1"
-            team_winners = team_2[0] + team_2[1]
-        finish_message = str(fun_facts())+"\n" + "\nGame over!\nGroup 1 typed in " + str(counter1) + " characters. Group 2 typed in " \
-                         + str(counter2) + " characters.\n" + winning_group + " wins!\n\n" \
-                         + "Congratulations to the winners:\n==\n" + "" + team_winners
-        clientSocket.send(finish_message.encode())
+            winners = members_group2[0] + members_group2[1]  # update the winners members
+        # the massage to print
+        finish_message = str(bonus()) +"\n" + "\nGame over!\nGroup 1 typed in " + str(points_group1) + " characters. Group 2 typed in " \
+                         + str(points_group2) + " characters.\n" + winning_group + " wins!\n\n" \
+                         + "Congratulations to the winners:\n==\n" + "" + winners
+        client_socket.send(finish_message.encode())
         return
+
     except:
         print("error occurred")
 
 
-def group_name_client_thread():
-    global counter1
-    global counter2
-    global thread_count
-    lock_thread_count = threading.RLock()
+def group_thread():
+    global points_group1
+    global points_group2
+    global count
+    locking_count = threading.RLock()
+
     try:
-        global t_end
-        TCPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
-        TCPServerSocket.bind(("", 10))
-        TCPServerSocket.listen(1)
-        while time.time() < t_end and thread_count < 4:
-            clientSocket, addr = TCPServerSocket.accept()
-            group_thread = threading.Thread(target=on_new_client, args=(clientSocket, addr))
-            group_thread.start()
-            with lock_thread_count:
-                thread_count += 1
+        global end_time
+        # TCP
+        TCP_server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
+        TCP_server_socket.bind(("", 10))
+        TCP_server_socket.listen(1)
+        while time.time() < end_time and count < 4:  # less than 10 sec and less than 4 clients
+            client_socket, addr = TCP_server_socket.accept()
+            group = threading.Thread(target=new_client, args=(client_socket, addr))
+            group.start()
+            with locking_count:
+                count += 1  # count the clients
         return
+
     except:
         print("Wrong type of message received")
 
 
-# ########################start of server logic:#################################
-# localIP ="127.0.0.1"
+def bonus():
+    """
+    :return: prints randomly a fun fact
+    """
+    facts = ["The First Computer Weighed More Than 27 Tons", "The First Computer Mouse was Made of Wood",
+                     "The First Known Computer Programmer was a Woman, her name was Ada Lovelace",
+                     "People Blink Less When They Use Computers", "Hackers Write About 6,000 New Viruses Each Month"]
+    fact = random.choice(facts)
+    return "Fun Fact:\n" + fact
 
+
+# UDP broadcast
 localPort = 7700
 
-# Create a UDP socket
-UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
-UDPServerSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-UDPServerSocket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
-UDPServerSocket.bind(('', localPort))  # TODO - write the IP
-print("Server started' listening on IP address 172.1.0.52")
-thread = threading.Thread(target=group_name_client_thread, args=())
+# The server starts
+# UDP
+UDP_server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
+UDP_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+UDP_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
+UDP_server_socket.bind(('', localPort))
+print("Server started' listening on IP address 172.1.0.22")
+thread = threading.Thread(target=group_thread, args=())
 thread.start()
-while time.time() < t_end:
+while time.time() < end_time:
+
     try:
+        # send
         MSG = struct.pack('<3Q', 0xfeedbeef, 0x2, 0xA)
-        UDPServerSocket.sendto(MSG, ('<broadcast>', 13117))
+        UDP_server_socket.sendto(MSG, ('<broadcast>', 13117))
         time.sleep(1)
+
     except:
         time.sleep(1)
-while time.time() < t_end:
+
+while time.time() < end_time:
     time.sleep(1)
+
 time.sleep(10)
+
+# The server closes
 print("Game over, sending out offer requests...")
 while True:
+    # send
     MSG = struct.pack('<3Q', 0xfeedbeef, 0x2, 0xA)
-    UDPServerSocket.sendto(MSG, ('<broadcast>', 13117))
+    UDP_server_socket.sendto(MSG, ('<broadcast>', 13117))
     time.sleep(1)
