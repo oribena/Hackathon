@@ -140,7 +140,7 @@ UDPServerSocket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDPServerSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 UDPServerSocket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 UDPServerSocket.bind(('', localPort))  # TODO - write the IP
-print("Server started' listening on IP address 172.1.0.52")
+print("Server started' listening on IP address 172.1.0.22")
 thread = threading.Thread(target=group_name_client_thread, args=())
 thread.start()
 while time.time() < t_end:
