@@ -146,7 +146,7 @@ def new_client(client_socket, addr):
         print("error occurred")
 
 
-def bonus():
+def bonus():  # fun fact with color!!!!
     """
     :return: prints randomly a fun fact
     """
@@ -165,7 +165,7 @@ UDP_server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDP_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 UDP_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 UDP_server_socket.bind(('', localPort))
-print(u"\u001B[32mServer started' listening on IP address 172.1.0.22\u001B[32m")
+print(u"\u001B[32mServer started' listening on IP address 172.1.0.22\u001B[32m")  # title with color!!!!
 thread = threading.Thread(target=group_thread, args=())
 thread.start()
 
