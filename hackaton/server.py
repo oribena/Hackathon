@@ -21,11 +21,35 @@ end_time = 10 + time.time()
 count = 0
 
 
+def group_thread():
+    global points_group1
+    global points_group2
+    global count
+    locking_count = threading.RLock()
+
+    try:
+        global end_time
+        # TCP
+        TCP_server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
+        TCP_server_socket.bind(("", 10))
+        TCP_server_socket.listen(1)
+        while time.time() < end_time and count < 4:  # less than 10 sec and less than 4 clients
+            client_socket, addr = TCP_server_socket.accept()
+            group = threading.Thread(target=new_client, args=(client_socket, addr))
+            group.start()
+            with locking_count:
+                count += 1  # count the clients
+        return
+
+    except:
+        print("Wrong type of message received")
+
+
 # the play of group 1
 def group1_playing(client, address):
     global points_group1
     locking = threading.RLock()
-    time_after_10_sec = time.time() + 10
+    time_after_10_sec = 10 + time.time()
     while time.time() < time_after_10_sec:  # 10 seconds after the server was started
         try:
             key = client.recv(bufferSize)
@@ -43,7 +67,7 @@ def group1_playing(client, address):
 def group2_playing(client, address):
     global points_group2
     locking = threading.RLock()
-    time_after_10_sec = time.time() + 10
+    time_after_10_sec = 10 + time.time()
     while time.time() < time_after_10_sec:  # 10 seconds after the server was started
         try:
             key = client.recv(bufferSize)
@@ -122,30 +146,6 @@ def new_client(client_socket, addr):
         print("error occurred")
 
 
-def group_thread():
-    global points_group1
-    global points_group2
-    global count
-    locking_count = threading.RLock()
-
-    try:
-        global end_time
-        # TCP
-        TCP_server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_STREAM)
-        TCP_server_socket.bind(("", 10))
-        TCP_server_socket.listen(1)
-        while time.time() < end_time and count < 4:  # less than 10 sec and less than 4 clients
-            client_socket, addr = TCP_server_socket.accept()
-            group = threading.Thread(target=new_client, args=(client_socket, addr))
-            group.start()
-            with locking_count:
-                count += 1  # count the clients
-        return
-
-    except:
-        print("Wrong type of message received")
-
-
 def bonus():
     """
     :return: prints randomly a fun fact
@@ -153,8 +153,7 @@ def bonus():
     facts = ["The First Computer Weighed More Than 27 Tons", "The First Computer Mouse was Made of Wood",
                      "The First Known Computer Programmer was a Woman, her name was Ada Lovelace",
                      "People Blink Less When They Use Computers", "Hackers Write About 6,000 New Viruses Each Month"]
-    fact = random.choice(facts)
-    return "Fun Fact:\n" + fact
+    return u"\u001B[36mFun Fact:\n" + random.choice(facts)
 
 
 # UDP broadcast
@@ -166,9 +165,10 @@ UDP_server_socket = socket.socket(family=socket.AF_INET, type=socket.SOCK_DGRAM)
 UDP_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 UDP_server_socket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 UDP_server_socket.bind(('', localPort))
-print("Server started' listening on IP address 172.1.0.22")
+print(u"\u001B[32mServer started' listening on IP address 172.1.0.22\u001B[32m")
 thread = threading.Thread(target=group_thread, args=())
 thread.start()
+
 while time.time() < end_time:
 
     try:

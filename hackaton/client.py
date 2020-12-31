@@ -15,7 +15,7 @@ UDPClientSocket.setsockopt(socket.SOL_SOCKET, socket.SO_BROADCAST, 1)
 UDPClientSocket.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
 UDPClientSocket.bind(("", 13117))
 
-print("Client started, listening for offer requests...")
+print(u"\u001B[35mClient started, listening for offer requests...\u001B[35m")
 t_end = time.time() + 10  
 while time.time() < t_end: # run for 10 second
     try:
